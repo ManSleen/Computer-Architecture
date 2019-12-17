@@ -1,10 +1,38 @@
 """CPU functionality."""
 
 import sys
-# sys.path.insert(1, '/home/mike/Computer-Architecture/ls8/examples')
-print(sys.argv)
+
+# ALU OPERATIONS
+ADD = 0b10100000  # Takes 2 parameters : 00000aaa 00000bbb
+SUB = 0b10100001  # Takes 2 parameters : 00000aaa 00000bbb
+MUL = 0b10100010  # Takes 2 parameters : 00000aaa 00000bbb
+DIV = 0b10100011  # Takes 2 parameters : 00000aaa 00000bbb
+MOD = 0b10100100  # Takes 2 parameters : 00000aaa 00000bbb
+INC = 0b01100101  # Takes 1 parameters : 00000rrr
+DEC = 0b01100110  # Takes 1 parameters : 00000rrr
+CMP = 0b10100111  # Takes 2 parameters : 00000aaa 00000bbb
+AND = 0b10101000  # Takes 2 parameters : 00000aaa 00000bbb
+NOT = 0b01101001  # Takes 1 parameters : 00000rrr
+OR = 0b10101010  # Takes 2 parameters : 00000aaa 00000bbb
+XOR = 0b10101011  # Takes 2 parameters : 00000aaa 00000bbb
+SHL = 0b10101100  # Takes 2 parameters : 00000aaa 00000bbb
+SHR = 0b10101101  # Takes 2 parameters : 00000aaa 00000bbb
+
+# PC MUTATORS
+CALL = 0b01010000  # Takes 1 parameter 00000rrr
+RET = 0b00010001  # Takes 1 parameter
+INT = 0b01010010  # Takes 1 parameter 00000rrr
+IRET = 0b00010011  # Takes 1 parameter
+JMP = 0b01010100  # Takes 1 parameter 00000rrr
+JEQ = 0b01010101  # Takes 1 parameter 00000rrr
+JNE = 0b01010110  # Takes 1 parameter 00000rrr
+JGT = 0b01010111  # Takes 1 parameter 00000rrr
+JLT = 0b01011000  # Takes 1 parameter 00000rrr
+JLE = 0b01011001  # Takes 1 parameter 00000rrr
+JGE = 0b01011010  # Takes 1 parameter 00000rrr
 
 
+# OTHER PROGRAMS
 # No-op
 NOP = 0b00000000  # Takes no parameters
 
@@ -67,9 +95,17 @@ class CPU:
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
 
-        if op == "ADD":
+        if op is "ADD":
             self.reg[reg_a] += self.reg[reg_b]
-        # elif op == "SUB": etc
+
+        elif op is "SUB":
+            self.reg[reg_a] -= self.reg[reg_b]
+
+        elif op is "MUL":
+            self.reg[reg_a] *= self.reg[reg_b]
+
+        elif op is "DIV":
+            self.reg[reg_a] /= self.reg[reg_b]
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -95,6 +131,7 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
+
         running = True
 
         while running:
@@ -114,6 +151,12 @@ class CPU:
                 number_to_print = self.reg[register_number]
                 print(number_to_print)
                 self.pc += 2
+
+            elif instruction is MUL:
+                register_a = self.ram_read(self.pc + 1)
+                register_b = self.ram_read(self.pc + 2)
+                self.alu("MUL", register_a, register_b)
+                self.pc += 3
 
             else:
                 print(f"Unknown instruction at index {self.pc}")
