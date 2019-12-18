@@ -19,24 +19,22 @@ SHL = 0b10101100  # Takes 2 parameters : 00000aaa 00000bbb
 SHR = 0b10101101  # Takes 2 parameters : 00000aaa 00000bbb
 
 # PC MUTATORS
-CALL = 0b01010000  # Takes 1 parameter 00000rrr
-RET = 0b00010001  # Takes 1 parameter
-INT = 0b01010010  # Takes 1 parameter 00000rrr
-IRET = 0b00010011  # Takes 1 parameter
-JMP = 0b01010100  # Takes 1 parameter 00000rrr
-JEQ = 0b01010101  # Takes 1 parameter 00000rrr
-JNE = 0b01010110  # Takes 1 parameter 00000rrr
-JGT = 0b01010111  # Takes 1 parameter 00000rrr
-JLT = 0b01011000  # Takes 1 parameter 00000rrr
-JLE = 0b01011001  # Takes 1 parameter 00000rrr
-JGE = 0b01011010  # Takes 1 parameter 00000rrr
+CALL = 0b01010000  # Takes 1 parameter : 00000rrr
+RET = 0b00010001  # Takes 0 parameters
+INT = 0b01010010  # Takes 1 parameter : 00000rrr
+IRET = 0b00010011  # Takes 0 parameters
+JMP = 0b01010100  # Takes 1 parameter : 00000rrr
+JEQ = 0b01010101  # Takes 1 parameter : 00000rrr
+JNE = 0b01010110  # Takes 1 parameter : 00000rrr
+JGT = 0b01010111  # Takes 1 parameter : 00000rrr
+JLT = 0b01011000  # Takes 1 parameter : 00000rrr
+JLE = 0b01011001  # Takes 1 parameter : 00000rrr
+JGE = 0b01011010  # Takes 1 parameter : 00000rrr
 
 
 # OTHER PROGRAMS
-# No-op
-NOP = 0b00000000  # Takes no parameters
 
-# Halt
+NOP = 0b00000000  # Takes no parameters
 HLT = 0b00000001  # Takes no parameters
 
 # LDI Register Immediate
@@ -66,6 +64,169 @@ class CPU:
         self.reg = [0] * 8
         self.reg[7] = 0xf4
         self.pc = 0
+        self.running = True
+
+        self.branchtable = {}
+
+        # ALU OPERATIONS
+        self.branchtable[ADD] = self.handle_op_ADD
+        self.branchtable[SUB] = self.handle_op_SUB
+        self.branchtable[MUL] = self.handle_op_MUL
+        self.branchtable[DIV] = self.handle_op_DIV
+        self.branchtable[MOD] = self.handle_op_MOD
+        self.branchtable[INC] = self.handle_op_INC
+        self.branchtable[DEC] = self.handle_op_DEC
+        self.branchtable[CMP] = self.handle_op_CMP
+        self.branchtable[AND] = self.handle_op_AND
+        self.branchtable[NOT] = self.handle_op_NOT
+        self.branchtable[OR] = self.handle_op_OR
+        self.branchtable[XOR] = self.handle_op_XOR
+        self.branchtable[SHL] = self.handle_op_SHL
+        self.branchtable[SHR] = self.handle_op_SHR
+
+        # PC MUTATORS
+        self.branchtable[CALL] = self.handle_op_CALL
+        self.branchtable[RET] = self.handle_op_RET
+        self.branchtable[INT] = self.handle_op_INT
+        self.branchtable[IRET] = self.handle_op_IRET
+        self.branchtable[JMP] = self.handle_op_JMP
+        self.branchtable[JEQ] = self.handle_op_JEQ
+        self.branchtable[JNE] = self.handle_op_JNE
+        self.branchtable[JGT] = self.handle_op_JGT
+        self.branchtable[JLT] = self.handle_op_JLT
+        self.branchtable[JLE] = self.handle_op_JLE
+        self.branchtable[JGE] = self.handle_op_JGE
+
+        # OTHER CODES
+        self.branchtable[NOP] = self.handle_op_NOP
+        self.branchtable[HLT] = self.handle_op_HLT
+        self.branchtable[LDI] = self.handle_op_LDI
+        self.branchtable[LD] = self.handle_op_LD
+        self.branchtable[ST] = self.handle_op_ST
+        self.branchtable[PUSH] = self.handle_op_PUSH
+        self.branchtable[POP] = self.handle_op_POP
+        self.branchtable[PRN] = self.handle_op_PRN
+        self.branchtable[PRA] = self.handle_op_PRA
+
+    def handle_op_ADD(self, instruction, number_of_arguments):
+        register_a = self.ram_read(self.pc + 1)
+        register_b = self.ram_read(self.pc + 2)
+        self.alu("ADD", register_a, register_b)
+        self.pc += number_of_arguments
+
+    def handle_op_SUB(self, instruction, number_of_arguments):
+        register_a = self.ram_read(self.pc + 1)
+        register_b = self.ram_read(self.pc + 2)
+        self.alu("SUB", register_a, register_b)
+        self.pc += number_of_arguments
+
+    def handle_op_MUL(self, instruction, number_of_arguments):
+        register_a = self.ram_read(self.pc + 1)
+        register_b = self.ram_read(self.pc + 2)
+        self.alu("MUL", register_a, register_b)
+        self.pc += number_of_arguments
+
+    def handle_op_DIV(self, instruction, number_of_arguments):
+        register_a = self.ram_read(self.pc + 1)
+        register_b = self.ram_read(self.pc + 2)
+        self.alu("DIV", register_a, register_b)
+        self.pc += number_of_arguments
+
+    def handle_op_MOD(self):
+        pass
+
+    def handle_op_INC(self):
+        pass
+
+    def handle_op_DEC(self):
+        pass
+
+    def handle_op_CMP(self):
+        pass
+
+    def handle_op_AND(self):
+        pass
+
+    def handle_op_NOT(self):
+        pass
+
+    def handle_op_OR(self):
+        pass
+
+    def handle_op_XOR(self):
+        pass
+
+    def handle_op_SHL(self):
+        pass
+
+    def handle_op_SHR(self):
+        pass
+
+    def handle_op_CALL(self):
+        pass
+
+    def handle_op_RET(self):
+        pass
+
+    def handle_op_INT(self):
+        pass
+
+    def handle_op_IRET(self):
+        pass
+
+    def handle_op_JMP(self):
+        pass
+
+    def handle_op_JEQ(self):
+        pass
+
+    def handle_op_JNE(self):
+        pass
+
+    def handle_op_JGT(self):
+        pass
+
+    def handle_op_JLT(self):
+        pass
+
+    def handle_op_JLE(self):
+        pass
+
+    def handle_op_JGE(self):
+        pass
+
+    def handle_op_NOP(self):
+        pass
+
+    def handle_op_HLT(self, instruction, number_of_arguments):
+        self.running = False
+
+    def handle_op_LDI(self, instruction, number_of_arguments):
+        register_number = self.ram_read(self.pc + 1)
+        number_to_save = self.ram_read(self.pc + 2)
+        self.reg[register_number] = number_to_save
+        self.pc += number_of_arguments
+
+    def handle_op_LD(self):
+        pass
+
+    def handle_op_ST(self):
+        pass
+
+    def handle_op_PUSH(self):
+        pass
+
+    def handle_op_POP(self):
+        pass
+
+    def handle_op_PRN(self, instruction, number_of_arguments):
+        register_number = self.ram_read(self.pc + 1)
+        number_to_print = self.reg[register_number]
+        print(number_to_print)
+        self.pc += number_of_arguments
+
+    def handle_op_PRA(self):
+        pass
 
     def load(self):
         """Load a program into memory."""
@@ -132,31 +293,12 @@ class CPU:
     def run(self):
         """Run the CPU."""
 
-        running = True
-
-        while running:
+        while self.running:
             instruction = self.ram_read(self.pc)
+            number_of_arguments = ((instruction & 0b11000000) >> 6) + 1
 
-            if instruction is HLT:
-                running = False
-
-            elif instruction is LDI:
-                register_number = self.ram_read(self.pc + 1)
-                number_to_save = self.ram_read(self.pc + 2)
-                self.reg[register_number] = number_to_save
-                self.pc += 3
-
-            elif instruction is PRN:
-                register_number = self.ram_read(self.pc + 1)
-                number_to_print = self.reg[register_number]
-                print(number_to_print)
-                self.pc += 2
-
-            elif instruction is MUL:
-                register_a = self.ram_read(self.pc + 1)
-                register_b = self.ram_read(self.pc + 2)
-                self.alu("MUL", register_a, register_b)
-                self.pc += 3
+            if instruction in self.branchtable:
+                self.branchtable[instruction](instruction, number_of_arguments)
 
             else:
                 print(f"Unknown instruction at index {self.pc}")
