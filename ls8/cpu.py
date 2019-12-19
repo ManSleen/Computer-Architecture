@@ -111,25 +111,25 @@ class CPU:
         self.branchtable[PRN] = self.handle_op_PRN
         self.branchtable[PRA] = self.handle_op_PRA
 
-    def handle_op_ADD(self, instruction, number_of_arguments):
+    def handle_op_ADD(self, number_of_arguments):
         register_a = self.ram_read(self.pc + 1)
         register_b = self.ram_read(self.pc + 2)
         self.alu("ADD", register_a, register_b)
         self.pc += number_of_arguments
 
-    def handle_op_SUB(self, instruction, number_of_arguments):
+    def handle_op_SUB(self, number_of_arguments):
         register_a = self.ram_read(self.pc + 1)
         register_b = self.ram_read(self.pc + 2)
         self.alu("SUB", register_a, register_b)
         self.pc += number_of_arguments
 
-    def handle_op_MUL(self, instruction, number_of_arguments):
+    def handle_op_MUL(self, number_of_arguments):
         register_a = self.ram_read(self.pc + 1)
         register_b = self.ram_read(self.pc + 2)
         self.alu("MUL", register_a, register_b)
         self.pc += number_of_arguments
 
-    def handle_op_DIV(self, instruction, number_of_arguments):
+    def handle_op_DIV(self, number_of_arguments):
         register_a = self.ram_read(self.pc + 1)
         register_b = self.ram_read(self.pc + 2)
         self.alu("DIV", register_a, register_b)
@@ -165,11 +165,20 @@ class CPU:
     def handle_op_SHR(self):
         pass
 
-    def handle_op_CALL(self):
-        pass
+    # FILL THIS OUT
+    def handle_op_CALL(self, number_of_arguments):
+        # Push return address to stack
+        # Set PC to the value in the register
+        return_address = self.pc + 2
+        self.push_to_stack(return_address)
+        register_number = self.ram_read(self.pc + 1)
+        self.pc = self.registers[register_number]
 
-    def handle_op_RET(self):
-        pass
+    # FILL THIS OUT
+    def handle_op_RET(self, number_of_arguments):
+        # Pop the return address off the stack
+        # Store it in the PC
+        self.pc = self.pop_from_stack()
 
     def handle_op_INT(self):
         pass
@@ -201,10 +210,10 @@ class CPU:
     def handle_op_NOP(self):
         pass
 
-    def handle_op_HLT(self, instruction, number_of_arguments):
+    def handle_op_HLT(self, number_of_arguments):
         self.running = False
 
-    def handle_op_LDI(self, instruction, number_of_arguments):
+    def handle_op_LDI(self, number_of_arguments):
         register_number = self.ram_read(self.pc + 1)
         number_to_save = self.ram_read(self.pc + 2)
         self.registers[register_number] = number_to_save
@@ -216,25 +225,20 @@ class CPU:
     def handle_op_ST(self):
         pass
 
-    def handle_op_PUSH(self, instruction, number_of_arguments):
-        # Decrement Stack Pointer (SP)
-        self.registers[SP] -= 1
-
+    def handle_op_PUSH(self, number_of_arguments):
         # Copy value from self.ram[register_number] to memory at SP
         register_number = self.ram_read(self.pc + 1)
         number_to_push = self.registers[register_number]
-        self.ram_write(self.registers[SP], number_to_push)
+        self.push_to_stack(number_to_push)
         self.pc += number_of_arguments
 
-    def handle_op_POP(self, instruction, number_of_arguments):
+    def handle_op_POP(self, number_of_arguments):
         # Copy value from the top of the stack into given register_number
         register_number = self.ram_read(self.pc + 1)
-        number_to_pop = self.ram_read(self.registers[SP])
-        self.registers[register_number] = number_to_pop
-        self.registers[SP] += 1
+        self.registers[register_number] = self.pop_from_stack()
         self.pc += number_of_arguments
 
-    def handle_op_PRN(self, instruction, number_of_arguments):
+    def handle_op_PRN(self, number_of_arguments):
         register_number = self.ram_read(self.pc + 1)
         number_to_print = self.registers[register_number]
         print(number_to_print)
@@ -242,6 +246,16 @@ class CPU:
 
     def handle_op_PRA(self):
         pass
+
+    def push_to_stack(self, item):
+        # Decrement Stack Pointer (SP)
+        self.registers[SP] -= 1
+        self.ram_write(self.registers[SP], item)
+
+    def pop_from_stack(self):
+        number_to_pop = self.ram_read(self.registers[SP])
+        self.registers[SP] += 1
+        return number_to_pop
 
     def load(self):
         """Load a program into memory."""
@@ -313,7 +327,7 @@ class CPU:
             number_of_arguments = ((instruction & 0b11000000) >> 6) + 1
 
             if instruction in self.branchtable:
-                self.branchtable[instruction](instruction, number_of_arguments)
+                self.branchtable[instruction](number_of_arguments)
 
             else:
                 print(f"Unknown instruction at index {self.pc}")
