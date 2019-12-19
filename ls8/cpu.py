@@ -55,14 +55,17 @@ PRN = 0b01000111  # Takes 1 parameter
 PRA = 0b01001000  # Takes 1 parameter
 
 
+SP = 7
+
+
 class CPU:
     """Main CPU class."""
 
     def __init__(self):
         """Construct a new CPU."""
         self.ram = {}
-        self.reg = [0] * 8
-        self.reg[7] = 0xf4
+        self.registers = [0] * 8
+        self.registers[SP] = 0xf4
         self.pc = 0
         self.running = True
 
@@ -204,7 +207,7 @@ class CPU:
     def handle_op_LDI(self, instruction, number_of_arguments):
         register_number = self.ram_read(self.pc + 1)
         number_to_save = self.ram_read(self.pc + 2)
-        self.reg[register_number] = number_to_save
+        self.registers[register_number] = number_to_save
         self.pc += number_of_arguments
 
     def handle_op_LD(self):
@@ -213,15 +216,27 @@ class CPU:
     def handle_op_ST(self):
         pass
 
-    def handle_op_PUSH(self):
-        pass
+    def handle_op_PUSH(self, instruction, number_of_arguments):
+        # Decrement Stack Pointer (SP)
+        self.registers[SP] -= 1
 
-    def handle_op_POP(self):
-        pass
+        # Copy value from self.ram[register_number] to memory at SP
+        register_number = self.ram_read(self.pc + 1)
+        number_to_push = self.registers[register_number]
+        self.ram_write(self.registers[SP], number_to_push)
+        self.pc += number_of_arguments
+
+    def handle_op_POP(self, instruction, number_of_arguments):
+        # Copy value from the top of the stack into given register_number
+        register_number = self.ram_read(self.pc + 1)
+        number_to_pop = self.ram_read(self.registers[SP])
+        self.registers[register_number] = number_to_pop
+        self.registers[SP] += 1
+        self.pc += number_of_arguments
 
     def handle_op_PRN(self, instruction, number_of_arguments):
         register_number = self.ram_read(self.pc + 1)
-        number_to_print = self.reg[register_number]
+        number_to_print = self.registers[register_number]
         print(number_to_print)
         self.pc += number_of_arguments
 
@@ -250,23 +265,23 @@ class CPU:
     def ram_read(self, address):
         return self.ram[address]
 
-    def ram_write(self, address, instruction):
-        self.ram[address] = instruction
+    def ram_write(self, address, value):
+        self.ram[address] = value
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
 
         if op is "ADD":
-            self.reg[reg_a] += self.reg[reg_b]
+            self.registers[reg_a] += self.registers[reg_b]
 
         elif op is "SUB":
-            self.reg[reg_a] -= self.reg[reg_b]
+            self.registers[reg_a] -= self.registers[reg_b]
 
         elif op is "MUL":
-            self.reg[reg_a] *= self.reg[reg_b]
+            self.registers[reg_a] *= self.registers[reg_b]
 
         elif op is "DIV":
-            self.reg[reg_a] /= self.reg[reg_b]
+            self.registers[reg_a] /= self.registers[reg_b]
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -286,7 +301,7 @@ class CPU:
         ), end='')
 
         for i in range(8):
-            print(" %02X" % self.reg[i], end='')
+            print(" %02X" % self.registers[i], end='')
 
         print()
 
